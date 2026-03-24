@@ -18,6 +18,7 @@ from tools.intelligence import (
     get_portfolio_insights,
     get_cross_dimension_stats,
 )
+from tools.quality import get_quality_signals, list_taxonomy_gaps
 
 load_dotenv()
 
@@ -234,6 +235,51 @@ async def list_tools() -> list[types.Tool]:
                 "required": ["name"],
             },
         ),
+        types.Tool(
+            name="get_quality_signals",
+            description=(
+                "Get the quality_signals dict for a specific repository. "
+                "Returns commit velocity, activity score, is_active flag, and overall_score (0-100). "
+                "Returns null with an explanation if signals have not been computed yet."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "repo_name": {
+                        "type": "string",
+                        "description": "The repository name (e.g., 'owner/repo' or just 'repo').",
+                    },
+                },
+                "required": ["repo_name"],
+            },
+        ),
+        types.Tool(
+            name="list_taxonomy_gaps",
+            description=(
+                "List taxonomy gaps from the library — values within a dimension that are underrepresented. "
+                "Filter by minimum severity (low/medium/high) and optionally by dimension. "
+                "Useful for identifying which AI topics or industries are underserved."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "dimension": {
+                        "type": "string",
+                        "description": (
+                            "Optional: filter to a specific taxonomy dimension "
+                            "(e.g., 'skill_area', 'industry', 'use_case')."
+                        ),
+                    },
+                    "min_severity": {
+                        "type": "string",
+                        "description": "Minimum gap severity to include: 'low', 'medium', or 'high'. Default: 'medium'.",
+                        "enum": ["low", "medium", "high"],
+                        "default": "medium",
+                    },
+                },
+                "required": [],
+            },
+        ),
     ]
 
 
@@ -277,6 +323,14 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[types.TextCont
             )
         elif name == "get_repo_quality":
             result = await get_repo_quality(client, arguments["name"])
+        elif name == "get_quality_signals":
+            result = await get_quality_signals(client, arguments["repo_name"])
+        elif name == "list_taxonomy_gaps":
+            result = await list_taxonomy_gaps(
+                client,
+                dimension=arguments.get("dimension"),
+                min_severity=arguments.get("min_severity", "medium"),
+            )
         else:
             result = f'{{"error": "Unknown tool: {name}"}}'
 

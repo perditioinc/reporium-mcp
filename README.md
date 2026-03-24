@@ -1,4 +1,13 @@
 # reporium-mcp
+<!-- perditio-badges-start -->
+[![Tests](https://github.com/perditioinc/reporium-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/perditioinc/reporium-mcp/actions/workflows/test.yml)
+![Last Commit](https://img.shields.io/github/last-commit/perditioinc/reporium-mcp)
+![License](https://img.shields.io/github/license/perditioinc/reporium-mcp)
+![python](https://img.shields.io/badge/python-3.11%2B-3776ab)
+![suite](https://img.shields.io/badge/suite-Reporium-6e40c9)
+![mcp](https://img.shields.io/badge/MCP-Claude%20Code-6e40c9)
+![tools](https://img.shields.io/badge/tools-10-blue)
+<!-- perditio-badges-end -->
 
 An MCP (Model Context Protocol) server that makes your Reporium AI repo library queryable by Claude and other AI agents. Once installed, Claude Code can answer questions like "What repos do we have for healthcare NLP?", "Find me production-ready RAG frameworks", or "What are the gaps in our ML portfolio?" — all as live queries against your Reporium API, without leaving your conversation.
 

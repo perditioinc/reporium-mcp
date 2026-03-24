@@ -50,3 +50,25 @@ async def find_similar_repos(client: httpx.AsyncClient, repo_name: str, limit: i
         return json.dumps({"error": f"API error {e.response.status_code}: {e.response.text}"})
     except Exception as e:
         return json.dumps({"error": f"Request failed: {str(e)}"})
+
+
+async def get_repo_quality(client: httpx.AsyncClient, name: str) -> str:
+    """Get only the quality_signals payload for a specific repo."""
+    try:
+        response = await client.get(f"/repos/{name}")
+        response.raise_for_status()
+        repo = response.json()
+        return json.dumps(
+            {
+                "name": repo.get("name", name),
+                "full_name": repo.get("full_name"),
+                "quality_signals": repo.get("quality_signals"),
+            },
+            indent=2,
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            return json.dumps({"error": f"Repo '{name}' not found."})
+        return json.dumps({"error": f"API error {e.response.status_code}: {e.response.text}"})
+    except Exception as e:
+        return json.dumps({"error": f"Request failed: {str(e)}"})

@@ -37,3 +37,35 @@ async def get_ai_trends(client: httpx.AsyncClient) -> str:
         return json.dumps({"error": f"API error {e.response.status_code}: {e.response.text}"})
     except Exception as e:
         return json.dumps({"error": f"Request failed: {str(e)}"})
+
+
+async def get_portfolio_insights(client: httpx.AsyncClient) -> str:
+    """Get proactive portfolio intelligence signals from the live intelligence feed."""
+    try:
+        response = await client.get("/intelligence/portfolio-insights")
+        response.raise_for_status()
+        return json.dumps(response.json(), indent=2)
+    except httpx.HTTPStatusError as e:
+        return json.dumps({"error": f"API error {e.response.status_code}: {e.response.text}"})
+    except Exception as e:
+        return json.dumps({"error": f"Request failed: {str(e)}"})
+
+
+async def get_cross_dimension_stats(
+    client: httpx.AsyncClient,
+    dim1: str,
+    dim2: str,
+    limit: int = 10,
+) -> str:
+    """Get cross-dimension portfolio counts for a pair of taxonomy dimensions."""
+    try:
+        response = await client.get(
+            "/analytics/cross-dimension",
+            params={"dim1": dim1, "dim2": dim2, "limit": limit},
+        )
+        response.raise_for_status()
+        return json.dumps(response.json(), indent=2)
+    except httpx.HTTPStatusError as e:
+        return json.dumps({"error": f"API error {e.response.status_code}: {e.response.text}"})
+    except Exception as e:
+        return json.dumps({"error": f"Request failed: {str(e)}"})

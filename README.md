@@ -6,7 +6,7 @@
 ![python](https://img.shields.io/badge/python-3.11%2B-3776ab)
 ![suite](https://img.shields.io/badge/suite-Reporium-6e40c9)
 ![mcp](https://img.shields.io/badge/MCP-Claude%20Code-6e40c9)
-![tools](https://img.shields.io/badge/tools-10-blue)
+![tools](https://img.shields.io/badge/tools-13-blue)
 <!-- perditio-badges-end -->
 
 `reporium-mcp` is the MCP server for the Reporium platform. It turns the live portfolio into a tool surface that agents can query directly from Claude Code and other MCP-aware clients.
@@ -56,7 +56,7 @@ Replace `/path/to/reporium-mcp/` with the absolute path where you cloned this re
 
 ## Tool Surface
 
-This server exposes 10 tools.
+This server exposes 13 tools.
 
 | Tool | What it does | Core parameters |
 |------|--------------|-----------------|
@@ -70,6 +70,9 @@ This server exposes 10 tools.
 | `ask_portfolio` | Sends a natural-language portfolio question to the Reporium intelligence layer | `question` |
 | `get_portfolio_gaps` | Returns portfolio gap analysis for under-covered areas | none |
 | `get_ai_trends` | Returns trend-oriented signals from the current portfolio snapshot | none |
+| `get_portfolio_insights` | Returns proactive portfolio signals including rising gaps, stale repos, velocity leaders, and near-duplicate clusters | none |
+| `get_cross_dimension_stats` | Returns counts at the intersection of two taxonomy dimensions | `dim1`, `dim2`, `limit` |
+| `get_repo_quality` | Returns only a repo's quality signals payload for lightweight quality checks | `name` |
 
 Supported taxonomy dimensions include:
 

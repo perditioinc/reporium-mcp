@@ -9,9 +9,15 @@ from mcp.server.stdio import stdio_server
 import mcp.types as types
 
 from tools.search import search_repos, search_repos_semantic
-from tools.repos import get_repo, find_similar_repos
+from tools.repos import get_repo, find_similar_repos, get_repo_quality
 from tools.taxonomy import list_taxonomy_dimensions, list_taxonomy_values, get_repos_by_taxonomy
-from tools.intelligence import ask_portfolio, get_portfolio_gaps, get_ai_trends
+from tools.intelligence import (
+    ask_portfolio,
+    get_portfolio_gaps,
+    get_ai_trends,
+    get_portfolio_insights,
+    get_cross_dimension_stats,
+)
 
 load_dotenv()
 
@@ -182,6 +188,52 @@ async def list_tools() -> list[types.Tool]:
                 "required": [],
             },
         ),
+        types.Tool(
+            name="get_portfolio_insights",
+            description="Get proactive portfolio intelligence signals: rising gaps, stale repos, velocity leaders, near-duplicate clusters.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
+        ),
+        types.Tool(
+            name="get_cross_dimension_stats",
+            description="Get a breakdown of how many repos exist at the intersection of two taxonomy dimensions.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "dim1": {
+                        "type": "string",
+                        "description": "The first taxonomy dimension to analyze.",
+                    },
+                    "dim2": {
+                        "type": "string",
+                        "description": "The second taxonomy dimension to analyze.",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of dimension-value pairs to return (default: 10).",
+                        "default": 10,
+                    },
+                },
+                "required": ["dim1", "dim2"],
+            },
+        ),
+        types.Tool(
+            name="get_repo_quality",
+            description="Get quality signals for a repo: has_tests, has_ci, commit velocity, overall quality score.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The repository name (e.g., 'owner/repo' or just 'repo').",
+                    },
+                },
+                "required": ["name"],
+            },
+        ),
     ]
 
 
@@ -214,6 +266,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[types.TextCont
             result = await get_portfolio_gaps(client)
         elif name == "get_ai_trends":
             result = await get_ai_trends(client)
+        elif name == "get_portfolio_insights":
+            result = await get_portfolio_insights(client)
+        elif name == "get_cross_dimension_stats":
+            result = await get_cross_dimension_stats(
+                client,
+                arguments["dim1"],
+                arguments["dim2"],
+                arguments.get("limit", 10),
+            )
+        elif name == "get_repo_quality":
+            result = await get_repo_quality(client, arguments["name"])
         else:
             result = f'{{"error": "Unknown tool: {name}"}}'
 

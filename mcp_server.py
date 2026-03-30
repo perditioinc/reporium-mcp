@@ -19,6 +19,7 @@ from tools.intelligence import (
     get_cross_dimension_stats,
 )
 from tools.quality import get_quality_signals, list_taxonomy_gaps
+from tools.graph import list_categories, get_repos_by_category, get_knowledge_graph
 
 load_dotenv()
 
@@ -280,6 +281,63 @@ async def list_tools() -> list[types.Tool]:
                 "required": [],
             },
         ),
+        types.Tool(
+            name="list_categories",
+            description="List the 16 canonical primary category IDs and their human-readable labels used to classify repos in the library (e.g., 'agents', 'rag-retrieval', 'vector-databases'). Use these IDs with get_repos_by_category.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
+        ),
+        types.Tool(
+            name="get_repos_by_category",
+            description="Get repos filtered by one of the 16 primary categories (e.g., 'agents', 'rag-retrieval', 'llm-serving'). Use list_categories to see all valid category IDs.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "description": "A primary category ID (e.g., 'agents', 'rag-retrieval', 'vector-databases'). Use list_categories to see all valid IDs.",
+                        "enum": [
+                            "ai-agents", "rag-retrieval", "inference-serving", "model-training",
+                            "evals-benchmarking", "observability", "safety-alignment",
+                            "coding-devtools", "dev-tools", "data-science",
+                            "computer-vision", "nlp-text", "generative-media",
+                            "mlops-infrastructure", "ml-platform", "foundation-models",
+                            "multimodal", "edge-mobile", "search-knowledge",
+                            "learning-resources", "other",
+                        ],
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of repos to return (default: 20).",
+                        "default": 20,
+                    },
+                },
+                "required": ["category"],
+            },
+        ),
+        types.Tool(
+            name="get_knowledge_graph",
+            description="Get edges from the repo knowledge graph showing typed relationships between repos: ALTERNATIVE_TO, COMPATIBLE_WITH, DEPENDS_ON, SIMILAR_TO, EXTENDS. Useful for understanding which repos work together or are alternatives.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "edge_type": {
+                        "type": "string",
+                        "description": "Optional: filter to a specific edge type.",
+                        "enum": ["ALTERNATIVE_TO", "COMPATIBLE_WITH", "DEPENDS_ON", "SIMILAR_TO", "EXTENDS"],
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of edges to return (default: 50, max: 200).",
+                        "default": 50,
+                    },
+                },
+                "required": [],
+            },
+        ),
     ]
 
 
@@ -330,6 +388,20 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[types.TextCont
                 client,
                 dimension=arguments.get("dimension"),
                 min_severity=arguments.get("min_severity", "medium"),
+            )
+        elif name == "list_categories":
+            result = await list_categories(client)
+        elif name == "get_repos_by_category":
+            result = await get_repos_by_category(
+                client,
+                arguments["category"],
+                arguments.get("limit", 20),
+            )
+        elif name == "get_knowledge_graph":
+            result = await get_knowledge_graph(
+                client,
+                edge_type=arguments.get("edge_type"),
+                limit=arguments.get("limit", 50),
             )
         else:
             result = f'{{"error": "Unknown tool: {name}"}}'

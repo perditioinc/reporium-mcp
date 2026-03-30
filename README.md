@@ -6,99 +6,235 @@
 ![python](https://img.shields.io/badge/python-3.11%2B-3776ab)
 ![suite](https://img.shields.io/badge/suite-Reporium-6e40c9)
 ![mcp](https://img.shields.io/badge/MCP-Claude%20Code-6e40c9)
-![tools](https://img.shields.io/badge/tools-13-blue)
+![tools](https://img.shields.io/badge/tools-18-blue)
 <!-- perditio-badges-end -->
 
-`reporium-mcp` is the MCP server for the Reporium platform. It turns the live portfolio into a tool surface that agents can query directly from Claude Code and other MCP-aware clients.
+`reporium-mcp` is the MCP server for the [Reporium](https://www.reporium.com) AI development tool library. It gives Claude and other MCP-aware AI agents direct access to 1,500+ curated AI repos — search, taxonomy, portfolio intelligence, knowledge graph, and quality signals.
 
 ## Why MCP?
 
-MCP makes the portfolio AI-native instead of screen-native.
+Without MCP, an agent has to infer portfolio state from documentation or ask a human to look things up. With MCP, Claude can query the live library directly:
 
-Without MCP, an agent has to infer state from documentation or ask a human to look things up. With MCP, the agent can query the live portfolio directly:
+- Search for repos by keyword or semantic similarity
+- Inspect any repo in full detail (taxonomy, skills, quality signals, recent commits)
+- Browse and filter by taxonomy dimensions (skill area, industry, use case, AI trend…)
+- Ask natural-language portfolio questions ("what are the best production RAG frameworks?")
+- Find similar repos, surface portfolio gaps, and check AI trend coverage
+- Explore the knowledge graph (alternatives, dependencies, compatible tools)
+- Browse repos by the 21 canonical AI categories
+- Check quality signals for individual repos
 
-- search for repos by keyword or semantics
-- inspect a repo in detail
-- browse taxonomy dimensions and values
-- answer portfolio questions in natural language
-- surface portfolio gaps and trend signals as part of an execution loop
+That makes portfolio intelligence a first-class tool in agent workflows instead of a manual research step.
 
-That means portfolio intelligence becomes a first-class tool in agent workflows instead of a manual reference step.
+---
 
-## Installation
+## Quick Start (Claude Code)
+
+### 1. Prerequisites
+
+- Python 3.11+
+- `pip` or `uv`
+
+### 2. Clone and install
 
 ```bash
+git clone https://github.com/perditioinc/reporium-mcp.git
+cd reporium-mcp
 pip install -r requirements.txt
 ```
 
-## Configuration
-
-Copy `.env.example` to `.env` and fill in your values:
+### 3. Configure environment
 
 ```bash
-cp .env.example .env
+cp .env.example .env   # create from template
 ```
 
+Edit `.env`:
+
 ```env
-REPORIUM_API_URL=https://your-reporium-api-url
+# Required: URL of the Reporium API
+REPORIUM_API_URL=https://reporium-api-573778300586.us-central1.run.app
+
+# Optional: API key for rate-limited or private endpoints
 REPORIUM_API_KEY=your-api-key-here
 ```
 
-`REPORIUM_API_KEY` is optional if the target API is publicly reachable for the endpoints you use.
+> The public Reporium API does not require a key for read-only operations.
 
-## Adding To Claude Code
+### 4. Register with Claude Code
+
+**Option A — Claude Code CLI:**
 
 ```bash
-claude mcp add reporium -- python /path/to/reporium-mcp/mcp_server.py
+claude mcp add reporium -- python /absolute/path/to/reporium-mcp/mcp_server.py
 ```
 
-Replace `/path/to/reporium-mcp/` with the absolute path where you cloned this repo.
+**Option B — Edit `.claude.json` directly:**
 
-## Tool Surface
+Find your `.claude.json` file (usually `~/.claude.json` or `C:\Users\<name>\.claude.json`) and add the server under the project's `mcpServers` key:
 
-This server exposes 13 tools.
+```json
+{
+  "projects": {
+    "/path/to/your/project": {
+      "mcpServers": {
+        "reporium": {
+          "type": "stdio",
+          "command": "python",
+          "args": ["/absolute/path/to/reporium-mcp/mcp_server.py"],
+          "env": {
+            "REPORIUM_API_URL": "https://reporium-api-573778300586.us-central1.run.app",
+            "REPORIUM_API_KEY": "your-key-here"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
-| Tool | What it does | Core parameters |
-|------|--------------|-----------------|
-| `search_repos` | Keyword search over repo names, descriptions, and other indexed text fields | `query`, `limit` |
-| `search_repos_semantic` | Embedding-based semantic repo search with similarity scores | `query`, `limit` |
-| `get_repo` | Full repo detail including taxonomy, skills, categories, commits, and metadata | `name` |
-| `find_similar_repos` | Finds repos similar to a target repo by reusing its summary as a semantic query | `repo_name`, `limit` |
-| `list_taxonomy_dimensions` | Lists active taxonomy dimensions with repo coverage counts | none |
-| `list_taxonomy_values` | Lists available values for a specific taxonomy dimension | `dimension` |
-| `get_repos_by_taxonomy` | Returns repos matching a taxonomy dimension/value pair | `dimension`, `value`, `limit` |
-| `ask_portfolio` | Sends a natural-language portfolio question to the Reporium intelligence layer | `question` |
-| `get_portfolio_gaps` | Returns portfolio gap analysis for under-covered areas | none |
-| `get_ai_trends` | Returns trend-oriented signals from the current portfolio snapshot | none |
-| `get_portfolio_insights` | Returns proactive portfolio signals including rising gaps, stale repos, velocity leaders, and near-duplicate clusters | none |
-| `get_cross_dimension_stats` | Returns counts at the intersection of two taxonomy dimensions | `dim1`, `dim2`, `limit` |
-| `get_repo_quality` | Returns only a repo's quality signals payload for lightweight quality checks | `name` |
+> **Windows users:** Use the full Python path, e.g. `C:/Python313/python` or `C:/Users/<name>/AppData/Local/Programs/Python/Python313/python.exe`. Forward slashes work on Windows in JSON.
 
-Supported taxonomy dimensions include:
+### 5. Restart Claude Code and verify
 
-- `skill_area`
-- `industry`
-- `use_case`
-- `modality`
-- `ai_trend`
-- `deployment_context`
+After restarting, Claude Code will list available tools. Try:
 
-## Example Questions
+> "Use the reporium MCP to search for RAG frameworks"
 
-Once the MCP server is installed in Claude Code, you can ask:
+---
 
-- "What repos do we have for healthcare NLP?"
-- "Find me production-ready RAG frameworks in the library"
-- "Show me repos similar to langchain"
-- "List all taxonomy dimensions and their most common values"
-- "What are the current portfolio gaps?"
-- "What AI trends are rising in the portfolio?"
-- "Which repos cover deployment context for on-device inference?"
+## Tool Reference (18 tools)
 
-## Relationship To The Rest Of Reporium
+### Search
 
-- `reporium-api` is the live data and intelligence backend
-- `reporium` is the human-facing portfolio UI
-- `reporium-mcp` is the agent-facing tool layer
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `search_repos` | Keyword search over names, descriptions, and summaries | `query`, `limit` |
+| `search_repos_semantic` | Embedding-based semantic search with similarity scores | `query`, `limit` |
 
-All three should describe the same portfolio, just through different interfaces.
+### Repo Detail
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_repo` | Full repo detail — taxonomy, skills, quality, commits | `name` |
+| `find_similar_repos` | Find repos similar to a given repo by semantic similarity | `repo_name`, `limit` |
+| `get_repo_quality` | Quality signals: has_tests, has_ci, velocity, overall score | `name` |
+| `get_quality_signals` | Raw quality_signals dict for a repo | `repo_name` |
+
+### Taxonomy
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `list_taxonomy_dimensions` | List all active taxonomy dimensions with repo counts | — |
+| `list_taxonomy_values` | List values for a dimension, sorted by repo count | `dimension` |
+| `get_repos_by_taxonomy` | Get repos by taxonomy dimension + value | `dimension`, `value`, `limit` |
+| `list_taxonomy_gaps` | Underrepresented taxonomy values (gap analysis) | `dimension`, `min_severity` |
+
+Supported dimensions: `skill_area`, `industry`, `use_case`, `modality`, `ai_trend`, `deployment_context`
+
+### Portfolio Intelligence
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `ask_portfolio` | Natural-language question against the full library | `question` |
+| `get_portfolio_gaps` | Gap analysis — which areas have insufficient coverage | — |
+| `get_ai_trends` | Trending AI topics in the library by repo count | — |
+| `get_portfolio_insights` | Rising gaps, stale repos, velocity leaders, near-duplicates | — |
+| `get_cross_dimension_stats` | Repo counts at the intersection of two dimensions | `dim1`, `dim2`, `limit` |
+
+### Knowledge Graph
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `list_categories` | List the 21 canonical primary category IDs and labels | — |
+| `get_repos_by_category` | Get repos by primary category | `category`, `limit` |
+| `get_knowledge_graph` | Edges between repos: ALTERNATIVE_TO, COMPATIBLE_WITH, DEPENDS_ON, SIMILAR_TO, EXTENDS | `edge_type`, `limit` |
+
+---
+
+## Example Prompts
+
+Once installed, ask Claude things like:
+
+```
+Search the Reporium library for production-ready RAG frameworks
+```
+```
+What AI repos do we have for healthcare NLP use cases?
+```
+```
+Find repos similar to langchain/langchain
+```
+```
+What are the current portfolio gaps in skill_area coverage?
+```
+```
+What AI trends are best represented in the library right now?
+```
+```
+Show me repos in the ai-agents category
+```
+```
+Get the knowledge graph edges of type ALTERNATIVE_TO
+```
+```
+Check the quality signals for vllm-project/vllm
+```
+```
+What's missing from our MLOps coverage?
+```
+
+---
+
+## Architecture
+
+```
+Claude Code / MCP Client
+       │  stdio
+       ▼
+ mcp_server.py          ← MCP protocol handler (18 tools)
+       │
+       ▼
+ tools/
+   search.py            ← search_repos, search_repos_semantic
+   repos.py             ← get_repo, find_similar_repos, get_repo_quality
+   taxonomy.py          ← list/get taxonomy tools
+   intelligence.py      ← ask_portfolio, gaps, trends, insights
+   quality.py           ← get_quality_signals, list_taxonomy_gaps
+   graph.py             ← list_categories, get_repos_by_category, get_knowledge_graph
+       │
+       ▼ HTTP
+ Reporium API (FastAPI on Cloud Run)
+       │
+       ▼
+ Neon PostgreSQL + pgvector
+```
+
+---
+
+## Relationship to the Reporium Suite
+
+| Repo | Role |
+|------|------|
+| `reporium-api` | Live data + intelligence backend (FastAPI, Cloud Run) |
+| `reporium` | Human-facing portfolio UI (Next.js, Vercel) |
+| `reporium-mcp` | Agent-facing tool layer (MCP server, stdio) |
+| `reporium-db` | Nightly sync pipeline (GitHub → PostgreSQL) |
+
+All describe the same 1,500+ repo portfolio through different interfaces.
+
+---
+
+## Development
+
+```bash
+# Run tests
+python -m pytest tests/ -v
+
+# Test against a local API
+REPORIUM_API_URL=http://localhost:8000 python mcp_server.py
+```
+
+## Contributing
+
+PRs welcome. Open an issue first for large changes.

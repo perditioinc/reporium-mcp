@@ -24,15 +24,15 @@ from tools.graph import list_categories, get_repos_by_category, get_knowledge_gr
 load_dotenv()
 
 REPORIUM_API_URL = os.environ.get("REPORIUM_API_URL", "").rstrip("/")
-REPORIUM_API_KEY = os.environ.get("REPORIUM_API_KEY", "")
+REPORIUM_APP_TOKEN = os.environ.get("REPORIUM_APP_TOKEN", "")
 
 app = Server("reporium")
 
 
 def get_client() -> httpx.AsyncClient:
     headers = {"Accept": "application/json", "Content-Type": "application/json"}
-    if REPORIUM_API_KEY:
-        headers["X-API-Key"] = REPORIUM_API_KEY
+    if REPORIUM_APP_TOKEN:
+        headers["X-App-Token"] = REPORIUM_APP_TOKEN
     return httpx.AsyncClient(base_url=REPORIUM_API_URL, headers=headers, timeout=30.0)
 
 

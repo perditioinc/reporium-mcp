@@ -1,0 +1,58 @@
+name: Deploy MCP HTTP Bridge to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "http_server.py"
+      - "tools/**"
+      - "requirements*.txt"
+      - "Dockerfile.http"
+      - ".github/workflows/deploy-http.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/deploy-cloudrun@v2
+        id: deploy
+        with:
+          service: reporium-mcp-http
+          region: us-central1
+          source: .
+          env_vars: |-
+            REPORIUM_API_URL=https://reporium-api-wypbzj5gpa-uc.a.run.app
+          env_vars_update_strategy: merge
+          flags: >-
+            --dockerfile=Dockerfile.http
+            --memory=512Mi
+            --cpu=1
+            --min-instances=0
+            --max-instances=5
+            --concurrency=100
+            --timeout=60
+            --set-secrets=REPORIUM_APP_TOKEN=reporium-app-token:latest,MCP_API_TOKEN=reporium-mcp-token:latest
+
+      - name: Smoke test health endpoint
+        env:
+          SERVICE_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          echo "Checking ${SERVICE_URL}/health ..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --http1.1 \
+            "${SERVICE_URL}/health" --max-time 30)
+          echo "HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Health check failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "MCP HTTP bridge deployed and healthy."

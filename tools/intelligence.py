@@ -6,7 +6,7 @@ async def ask_portfolio(client: httpx.AsyncClient, question: str) -> str:
     """Ask a natural language question about the repo library portfolio. Returns an AI-generated answer.
     Example questions: 'What are our strongest areas?', 'Do we have anything for real-time fraud detection?'"""
     try:
-        response = await client.post("/intelligence/ask", json={"question": question})
+        response = await client.post("/ask", json={"question": question})
         response.raise_for_status()
         return json.dumps(response.json(), indent=2)
     except httpx.HTTPStatusError as e:
@@ -42,7 +42,7 @@ async def get_ai_trends(client: httpx.AsyncClient) -> str:
 async def get_portfolio_insights(client: httpx.AsyncClient) -> str:
     """Get proactive portfolio intelligence signals from the live intelligence feed."""
     try:
-        response = await client.get("/intelligence/portfolio-insights")
+        response = await client.get("/insights")
         response.raise_for_status()
         return json.dumps(response.json(), indent=2)
     except httpx.HTTPStatusError as e:

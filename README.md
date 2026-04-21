@@ -55,8 +55,8 @@ Edit `.env`:
 # Required: URL of the Reporium API
 REPORIUM_API_URL=https://reporium-api-573778300586.us-central1.run.app
 
-# Optional: API key for rate-limited or private endpoints
-REPORIUM_API_KEY=your-api-key-here
+# Optional: app token forwarded as X-App-Token for rate-limited or private endpoints
+REPORIUM_APP_TOKEN=your-app-token-here
 ```
 
 > The public Reporium API does not require a key for read-only operations.
@@ -84,7 +84,7 @@ Find your `.claude.json` file (usually `~/.claude.json` or `C:\Users\<name>\.cla
           "args": ["/absolute/path/to/reporium-mcp/mcp_server.py"],
           "env": {
             "REPORIUM_API_URL": "https://reporium-api-573778300586.us-central1.run.app",
-            "REPORIUM_API_KEY": "your-key-here"
+            "REPORIUM_APP_TOKEN": "your-app-token-here"
           }
         }
       }

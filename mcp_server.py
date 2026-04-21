@@ -112,7 +112,7 @@ async def list_tools() -> list[types.Tool]:
         ),
         types.Tool(
             name="list_taxonomy_dimensions",
-            description="List all active taxonomy dimensions used to categorize repos in the library (e.g., skill_area, industry, use_case), along with their repo counts.",
+            description="List all active taxonomy dimensions used to categorize repos in the library (e.g., skill_area, industry, use_case, tags, categories), along with their repo counts.",
             inputSchema={
                 "type": "object",
                 "properties": {},
@@ -127,8 +127,8 @@ async def list_tools() -> list[types.Tool]:
                 "properties": {
                     "dimension": {
                         "type": "string",
-                        "description": "The taxonomy dimension to list values for. Valid options: skill_area, industry, use_case, modality, ai_trend, deployment_context.",
-                        "enum": ["skill_area", "industry", "use_case", "modality", "ai_trend", "deployment_context"],
+                        "description": "The taxonomy dimension to list values for. Valid options: skill_area, industry, use_case, modality, ai_trend, deployment_context, tags, categories.",
+                        "enum": ["skill_area", "industry", "use_case", "modality", "ai_trend", "deployment_context", "tags", "categories"],
                     },
                 },
                 "required": ["dimension"],
@@ -142,8 +142,8 @@ async def list_tools() -> list[types.Tool]:
                 "properties": {
                     "dimension": {
                         "type": "string",
-                        "description": "The taxonomy dimension. Valid options: skill_area, industry, use_case, modality, ai_trend, deployment_context.",
-                        "enum": ["skill_area", "industry", "use_case", "modality", "ai_trend", "deployment_context"],
+                        "description": "The taxonomy dimension. Valid options: skill_area, industry, use_case, modality, ai_trend, deployment_context, tags, categories.",
+                        "enum": ["skill_area", "industry", "use_case", "modality", "ai_trend", "deployment_context", "tags", "categories"],
                     },
                     "value": {
                         "type": "string",

@@ -1,7 +1,16 @@
 import json
 import httpx
 
-VALID_DIMENSIONS = ["skill_area", "industry", "use_case", "modality", "ai_trend", "deployment_context"]
+VALID_DIMENSIONS = [
+    "skill_area",
+    "industry",
+    "use_case",
+    "modality",
+    "ai_trend",
+    "deployment_context",
+    "tags",
+    "categories",
+]
 
 
 async def list_taxonomy_dimensions(client: httpx.AsyncClient) -> str:
@@ -18,7 +27,7 @@ async def list_taxonomy_dimensions(client: httpx.AsyncClient) -> str:
 
 async def list_taxonomy_values(client: httpx.AsyncClient, dimension: str) -> str:
     """List all values for a taxonomy dimension, sorted by repo count.
-    Valid dimensions: skill_area, industry, use_case, modality, ai_trend, deployment_context."""
+    Valid dimensions: skill_area, industry, use_case, modality, ai_trend, deployment_context, tags, categories."""
     if dimension not in VALID_DIMENSIONS:
         return json.dumps({
             "error": f"Invalid dimension '{dimension}'. Valid dimensions are: {', '.join(VALID_DIMENSIONS)}"

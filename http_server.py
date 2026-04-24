@@ -10,7 +10,8 @@ Rate: 60 requests/minute per IP (slowapi).
 Env vars:
     REPORIUM_API_URL   — upstream reporium-api base URL
     REPORIUM_APP_TOKEN — X-App-Token forwarded to reporium-api
-    MCP_API_TOKEN      — required bearer token for this server
+    MCP_SHARED_SECRET  — required bearer token for this server
+                         (MCP_API_TOKEN accepted as legacy fallback)
 """
 from __future__ import annotations
 
@@ -43,7 +44,11 @@ from tools.graph import list_categories, get_repos_by_category, get_knowledge_gr
 
 REPORIUM_API_URL = os.environ.get("REPORIUM_API_URL", "").rstrip("/")
 REPORIUM_APP_TOKEN = os.environ.get("REPORIUM_APP_TOKEN", "")
-MCP_API_TOKEN = os.environ.get("MCP_API_TOKEN", "")
+# MCP_SHARED_SECRET is the canonical name; MCP_API_TOKEN is the legacy fallback.
+MCP_API_TOKEN = (
+    os.environ.get("MCP_SHARED_SECRET")
+    or os.environ.get("MCP_API_TOKEN", "")
+)
 
 limiter = Limiter(key_func=get_remote_address)
 

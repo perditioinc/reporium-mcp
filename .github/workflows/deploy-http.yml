@@ -8,6 +8,7 @@ on:
       - "tools/**"
       - "requirements*.txt"
       - "Dockerfile.http"
+      - "cloudbuild.http.yaml"
       - ".github/workflows/deploy-http.yml"
   workflow_dispatch:
 
@@ -22,6 +23,8 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: us-central1-docker.pkg.dev/perditio-platform/cloud-run-source-deploy/reporium-mcp-http:${{ github.sha }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
@@ -31,31 +34,48 @@ jobs:
           workload_identity_provider: projects/573778300586/locations/global/workloadIdentityPools/github-pool/providers/github-provider
           service_account: reporium-mcp-deploy@perditio-platform.iam.gserviceaccount.com
 
-      - uses: google-github-actions/deploy-cloudrun@v2
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build HTTP bridge image via Cloud Build
+        # Uses cloudbuild.http.yaml so Dockerfile.http is used explicitly.
+        # `gcloud run deploy --source . --dockerfile=X` is not valid on the
+        # stable gcloud channel — Cloud Build config is the correct solution.
+        run: |
+          gcloud builds submit \
+            --config=cloudbuild.http.yaml \
+            --substitutions="_IMAGE=${IMAGE}" \
+            .
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
         id: deploy
         with:
           service: reporium-mcp-http
           region: us-central1
-          source: .
+          image: ${{ env.IMAGE }}
           env_vars: |-
             REPORIUM_API_URL=https://reporium-api-wypbzj5gpa-uc.a.run.app
           env_vars_update_strategy: merge
           flags: >-
-            --dockerfile=Dockerfile.http
             --memory=512Mi
             --cpu=1
             --min-instances=0
             --max-instances=5
-            --concurrency=100
+            --concurrency=80
             --timeout=60
-            --set-secrets=REPORIUM_APP_TOKEN=reporium-app-token:latest,MCP_API_TOKEN=reporium-mcp-token:latest
+            --no-allow-unauthenticated
+            --set-secrets=REPORIUM_APP_TOKEN=reporium-app-token:latest,MCP_SHARED_SECRET=reporium-mcp-token:latest
 
       - name: Smoke test health endpoint
         env:
           SERVICE_URL: ${{ steps.deploy.outputs.url }}
         run: |
+          echo "Fetching ID token for ${SERVICE_URL} ..."
+          ID_TOKEN=$(gcloud auth print-identity-token --audiences="${SERVICE_URL}")
           echo "Checking ${SERVICE_URL}/health ..."
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --http1.1 \
+            -H "Authorization: Bearer ${ID_TOKEN}" \
             "${SERVICE_URL}/health" --max-time 30)
           echo "HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then

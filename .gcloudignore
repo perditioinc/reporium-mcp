@@ -11,3 +11,7 @@ venv
 tests
 docs
 .claude
+.audit
+.github
+ROADMAP.md
+CHANGELOG.md

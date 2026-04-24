@@ -1,0 +1,22 @@
+# Cloud Build config for the MCP HTTP bridge.
+# Explicitly uses Dockerfile.http so the build does not collide with
+# the stdio server's root Dockerfile.
+#
+# Invoked by .github/workflows/deploy-http.yml via:
+#   gcloud builds submit --config=cloudbuild.http.yaml \
+#     --substitutions=_IMAGE=<full-image-ref> .
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-f"
+      - "Dockerfile.http"
+      - "-t"
+      - "${_IMAGE}"
+      - "."
+
+images:
+  - "${_IMAGE}"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

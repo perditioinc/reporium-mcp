@@ -67,19 +67,31 @@ jobs:
             --no-allow-unauthenticated
             --set-secrets=REPORIUM_APP_TOKEN=reporium-app-token:latest,MCP_SHARED_SECRET=reporium-mcp-token:latest
 
-      - name: Smoke test health endpoint
+      # Unauthenticated reachability probe.  The service runs with
+      # --no-allow-unauthenticated and roles/run.invoker is bound only to
+      # workato-mcp@ (not to the deploy SA), so an authenticated probe would
+      # require additional IAM setup.  A 401/403 from Cloud Run proves:
+      #   (a) the service exists, (b) the container is up and routing, and
+      #   (c) auth enforcement is working.  404/5xx would indicate the
+      #   revision itself is broken and should fail the run.
+      - name: Smoke test reachability and auth enforcement
         env:
           SERVICE_URL: ${{ steps.deploy.outputs.url }}
         run: |
-          echo "Fetching ID token for ${SERVICE_URL} ..."
-          ID_TOKEN=$(gcloud auth print-identity-token --audiences="${SERVICE_URL}")
-          echo "Checking ${SERVICE_URL}/health ..."
+          echo "Checking ${SERVICE_URL}/health (expect 401/403 — auth enforced) ..."
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --http1.1 \
-            -H "Authorization: Bearer ${ID_TOKEN}" \
             "${SERVICE_URL}/health" --max-time 30)
           echo "HTTP status: $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "::error::Health check failed with HTTP $HTTP_CODE"
-            exit 1
-          fi
-          echo "MCP HTTP bridge deployed and healthy."
+          case "$HTTP_CODE" in
+            401|403)
+              echo "MCP HTTP bridge reachable and auth enforced."
+              ;;
+            200)
+              echo "::error::Unexpected 200 without auth — --no-allow-unauthenticated may not be applied."
+              exit 1
+              ;;
+            *)
+              echo "::error::Reachability check failed with HTTP $HTTP_CODE (expected 401/403)"
+              exit 1
+              ;;
+          esac

@@ -38,14 +38,12 @@ jobs:
         # tests import tools/intelligence.py (httpx) and the bridge import
         # smoke needs FastAPI, slowapi, etc.
         # pytest + pytest-asyncio are not pinned in the repo (no pyproject /
-        # requirements-dev), so install them here. Tests use
-        # @pytest.mark.asyncio with no asyncio_mode config, so pin
-        # pytest-asyncio<0.23 to keep the legacy-mode default behaviour.
+        # requirements-dev), so install them here.
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-http.txt
-          pip install "pytest>=7.0" "pytest-asyncio<0.23"
+          pip install "pytest>=7.0" "pytest-asyncio>=0.23"
 
       - name: Smoke — import FastAPI bridge app
         # The FastAPI app is `app` defined at module scope in http_server.py
@@ -62,4 +60,14 @@ jobs:
         run: python -c "import http_server; assert http_server.app.title == 'Reporium MCP HTTP Bridge'; print('OK')"
 
       - name: Run pytest
-        run: pytest tests/ -v
+        # PYTHONPATH=. makes `from tools.intelligence import ...` resolve to
+        # the repo's tools/ package — pytest's rootdir auto-discovery doesn't
+        # add the rootdir to sys.path on its own. The repo has no pyproject /
+        # conftest / pytest.ini that would otherwise handle this; per
+        # KAN-CI-WIREUP scope, fix it in the workflow rather than touching
+        # non-workflow files.
+        # --asyncio-mode=auto runs `@pytest.mark.asyncio` tests without
+        # needing a config file (pytest-asyncio>=0.23 defaults to STRICT).
+        env:
+          PYTHONPATH: .
+        run: pytest tests/ -v --asyncio-mode=auto

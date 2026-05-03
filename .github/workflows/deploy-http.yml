@@ -58,17 +58,19 @@ jobs:
           service: reporium-mcp-http
           region: us-central1
           image: ${{ env.IMAGE }}
-          # Dedicated minimal runtime SA. Replaces the default compute SA
-          # (573778300586-compute@…) which carries project-wide roles/editor,
-          # roles/run.admin, roles/storage.objectAdmin, etc. — far more than
-          # an HTTP bridge that only reads 2 secrets and forwards traffic
-          # needs. Bindings for this SA are documented in
-          # docs/runtime-service-account.md.
-          service_account: reporium-mcp-runtime@perditio-platform.iam.gserviceaccount.com
           env_vars: |-
             REPORIUM_API_URL=https://reporium-api-wypbzj5gpa-uc.a.run.app
           env_vars_update_strategy: merge
+          # Dedicated minimal runtime SA passed via `flags:` — `service_account:`
+          # is NOT a valid deploy-cloudrun@v2 input (verified 2026-05-03 via
+          # workflow run 25293887520 annotation listing valid inputs). Without
+          # explicit `--service-account` here, deploy inherits SA from prior
+          # revision; that's WORKING today but vulnerable to drift. Replaces
+          # the default compute SA (573778300586-compute@) which carried
+          # project-wide roles/editor, run.admin, storage.objectAdmin etc.
+          # Bindings for this SA documented in docs/runtime-service-account.md.
           flags: >-
+            --service-account=reporium-mcp-runtime@perditio-platform.iam.gserviceaccount.com
             --memory=512Mi
             --cpu=1
             --min-instances=0

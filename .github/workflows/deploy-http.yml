@@ -37,15 +37,19 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
 
-      - name: Build HTTP bridge image via Cloud Build
-        # Uses cloudbuild.http.yaml so Dockerfile.http is used explicitly.
-        # `gcloud run deploy --source . --dockerfile=X` is not valid on the
-        # stable gcloud channel — Cloud Build config is the correct solution.
+      - name: Build HTTP bridge image (docker build + push to Artifact Registry)
+        # KAN-215: switched from `gcloud builds submit` to direct docker build/push.
+        # `gcloud builds submit` requires the deploy SA to have project-level
+        # roles/storage.admin (for Cloud Build's staging bucket access) — bucket-
+        # scoped grants are not sufficient (verified empirically across 5 deploy
+        # attempts during 8h-run on 2026-05-03; documented in KAN-210 comment).
+        # Direct docker push only requires roles/artifactregistry.writer on the
+        # AR repository — much narrower. Once this lands, KAN-210's storage.admin
+        # removal can ship cleanly.
         run: |
-          gcloud builds submit \
-            --config=cloudbuild.http.yaml \
-            --substitutions="_IMAGE=${IMAGE}" \
-            .
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+          docker build -f Dockerfile.http -t "${IMAGE}" .
+          docker push "${IMAGE}"
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@251330ba9a8a34bfbc1622895f42e1d53fd14522 # v2.7.6
@@ -54,6 +58,13 @@ jobs:
           service: reporium-mcp-http
           region: us-central1
           image: ${{ env.IMAGE }}
+          # Dedicated minimal runtime SA. Replaces the default compute SA
+          # (573778300586-compute@…) which carries project-wide roles/editor,
+          # roles/run.admin, roles/storage.objectAdmin, etc. — far more than
+          # an HTTP bridge that only reads 2 secrets and forwards traffic
+          # needs. Bindings for this SA are documented in
+          # docs/runtime-service-account.md.
+          service_account: reporium-mcp-runtime@perditio-platform.iam.gserviceaccount.com
           env_vars: |-
             REPORIUM_API_URL=https://reporium-api-wypbzj5gpa-uc.a.run.app
           env_vars_update_strategy: merge

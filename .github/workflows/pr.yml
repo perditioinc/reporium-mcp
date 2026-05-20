@@ -1,10 +1,12 @@
 name: PR Smoke + Tests
 
-# KAN-CI-WIREUP: this repo previously had no PR-trigger workflow — only a
-# push-to-main deploy workflow (.github/workflows/deploy-http.yml). PRs
-# landed with empty statusCheckRollup, meaning regressions could merge
-# silently. This workflow runs an import smoke and the test suite on every
-# PR against main so review has a real signal.
+# KAN-CI-WIREUP: this repo previously had no PR-trigger workflow. This
+# workflow runs an import smoke and the test suite on every PR against
+# main so review has a real signal.
+#
+# Workato teardown 2026-05-20: the HTTP bridge (http_server.py /
+# Dockerfile.http / deploy-http.yml) was removed; the stdio MCP server
+# (mcp_server.py) is the only remaining entrypoint.
 
 on:
   pull_request:
@@ -32,32 +34,25 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        # The repo splits requirements: requirements.txt is the stdio MCP
-        # server (mcp_server.py) deps, requirements-http.txt is the FastAPI
-        # bridge (http_server.py) deps. We need both for the smoke + tests:
-        # tests import tools/intelligence.py (httpx) and the bridge import
-        # smoke needs FastAPI, slowapi, etc.
+        # requirements.txt is the stdio MCP server (mcp_server.py) deps.
         # pytest + pytest-asyncio are not pinned in the repo (no pyproject /
         # requirements-dev), so install them here.
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-http.txt
           pip install "pytest>=7.0" "pytest-asyncio>=0.23"
 
-      - name: Smoke — import FastAPI bridge app
-        # The FastAPI app is `app` defined at module scope in http_server.py
-        # (root of repo, not an `app/` package). Importing the module
-        # exercises every tools/* import and the @app.get/@app.post route
-        # registrations, which is enough to catch syntax errors, missing
-        # symbols, and broken imports before tests run.
+      - name: Smoke — import stdio MCP server
+        # mcp_server.py defines `app = Server("reporium")` at module scope.
+        # Importing the module exercises every tools/* import and tool
+        # registration, which catches syntax errors, missing symbols, and
+        # broken imports before tests run.
         env:
-          # http_server.py reads these at import time but tolerates empty
+          # mcp_server.py reads these at import time but tolerates empty
           # values; set them so the smoke matches a typical runtime shape.
           REPORIUM_API_URL: http://localhost
           REPORIUM_APP_TOKEN: smoke
-          MCP_SHARED_SECRET: smoke
-        run: python -c "import http_server; assert http_server.app.title == 'Reporium MCP HTTP Bridge'; print('OK')"
+        run: python -c "import mcp_server; assert mcp_server.app.name == 'reporium'; print('OK')"
 
       - name: Run pytest
         # PYTHONPATH=. makes `from tools.intelligence import ...` resolve to

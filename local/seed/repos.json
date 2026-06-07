@@ -1,0 +1,162 @@
+{
+  "repos": [
+    {
+      "name": "langchain",
+      "full_name": "langchain-ai/langchain",
+      "description": "Build context-aware reasoning applications and LLM agents.",
+      "readme_summary": "Framework for developing applications powered by large language models, with chains, agents, and retrieval.",
+      "primary_category": "ai-agents",
+      "stars": 95000,
+      "taxonomy": {
+        "skill_area": ["agents", "rag"],
+        "industry": ["software"],
+        "use_case": ["chatbots", "rag"],
+        "modality": ["text"],
+        "ai_trend": ["agentic-ai", "rag"],
+        "deployment_context": ["cloud"]
+      },
+      "quality_signals": {
+        "has_tests": true,
+        "has_ci": true,
+        "commit_velocity": 42,
+        "activity_score": 88,
+        "is_active": true,
+        "overall_score": 91
+      }
+    },
+    {
+      "name": "llama_index",
+      "full_name": "run-llama/llama_index",
+      "description": "Data framework for building RAG and LLM applications over your data.",
+      "readme_summary": "Connect custom data sources to large language models with indexing and retrieval for RAG pipelines.",
+      "primary_category": "rag-retrieval",
+      "stars": 38000,
+      "taxonomy": {
+        "skill_area": ["rag"],
+        "industry": ["software"],
+        "use_case": ["rag", "search"],
+        "modality": ["text"],
+        "ai_trend": ["rag"],
+        "deployment_context": ["cloud"]
+      },
+      "quality_signals": {
+        "has_tests": true,
+        "has_ci": true,
+        "commit_velocity": 31,
+        "activity_score": 80,
+        "is_active": true,
+        "overall_score": 84
+      }
+    },
+    {
+      "name": "vllm",
+      "full_name": "vllm-project/vllm",
+      "description": "High-throughput and memory-efficient inference and serving engine for LLMs.",
+      "readme_summary": "Fast LLM inference and serving with PagedAttention for production deployments.",
+      "primary_category": "inference-serving",
+      "stars": 30000,
+      "taxonomy": {
+        "skill_area": ["inference"],
+        "industry": ["software"],
+        "use_case": ["serving"],
+        "modality": ["text"],
+        "ai_trend": ["llm-serving"],
+        "deployment_context": ["self-hosted"]
+      },
+      "quality_signals": {
+        "has_tests": true,
+        "has_ci": true,
+        "commit_velocity": 55,
+        "activity_score": 92,
+        "is_active": true,
+        "overall_score": 93
+      }
+    },
+    {
+      "name": "sentence-transformers",
+      "full_name": "UKPLab/sentence-transformers",
+      "description": "Compute dense vector embeddings for sentences, paragraphs, and images.",
+      "readme_summary": "State-of-the-art text and image embeddings for semantic search, clustering, and retrieval, fully local and offline capable.",
+      "primary_category": "nlp-text",
+      "stars": 15000,
+      "taxonomy": {
+        "skill_area": ["embeddings", "nlp"],
+        "industry": ["software"],
+        "use_case": ["search", "rag"],
+        "modality": ["text"],
+        "ai_trend": ["embeddings"],
+        "deployment_context": ["self-hosted"]
+      },
+      "quality_signals": {
+        "has_tests": true,
+        "has_ci": true,
+        "commit_velocity": 12,
+        "activity_score": 64,
+        "is_active": true,
+        "overall_score": 78
+      }
+    },
+    {
+      "name": "pgvector",
+      "full_name": "pgvector/pgvector",
+      "description": "Open-source vector similarity search for Postgres.",
+      "readme_summary": "Store embeddings and run vector similarity search directly in PostgreSQL, a $0 self-hosted vector database.",
+      "primary_category": "rag-retrieval",
+      "stars": 12000,
+      "taxonomy": {
+        "skill_area": ["vector-search"],
+        "industry": ["software"],
+        "use_case": ["rag", "search"],
+        "modality": ["text"],
+        "ai_trend": ["vector-databases"],
+        "deployment_context": ["self-hosted"]
+      },
+      "quality_signals": {
+        "has_tests": true,
+        "has_ci": true,
+        "commit_velocity": 8,
+        "activity_score": 58,
+        "is_active": true,
+        "overall_score": 75
+      }
+    },
+    {
+      "name": "monai",
+      "full_name": "Project-MONAI/MONAI",
+      "description": "Medical Open Network for AI — deep learning for healthcare imaging.",
+      "readme_summary": "PyTorch-based framework for deep learning in healthcare medical imaging, with domain-optimized components.",
+      "primary_category": "computer-vision",
+      "stars": 5000,
+      "taxonomy": {
+        "skill_area": ["computer-vision"],
+        "industry": ["healthcare"],
+        "use_case": ["medical-imaging"],
+        "modality": ["image"],
+        "ai_trend": ["healthcare-ai"],
+        "deployment_context": ["self-hosted"]
+      },
+      "quality_signals": {
+        "has_tests": true,
+        "has_ci": true,
+        "commit_velocity": 18,
+        "activity_score": 70,
+        "is_active": true,
+        "overall_score": 80
+      }
+    }
+  ],
+  "graph_edges": [
+    {"source": "langchain", "target": "llama_index", "edge_type": "ALTERNATIVE_TO"},
+    {"source": "langchain", "target": "pgvector", "edge_type": "COMPATIBLE_WITH"},
+    {"source": "llama_index", "target": "pgvector", "edge_type": "DEPENDS_ON"},
+    {"source": "llama_index", "target": "sentence-transformers", "edge_type": "COMPATIBLE_WITH"},
+    {"source": "vllm", "target": "langchain", "edge_type": "COMPATIBLE_WITH"},
+    {"source": "sentence-transformers", "target": "pgvector", "edge_type": "COMPATIBLE_WITH"}
+  ],
+  "taxonomy_gaps": [
+    {"dimension": "industry", "value": "finance", "severity": "high", "repo_count": 0},
+    {"dimension": "industry", "value": "legal", "severity": "medium", "repo_count": 0},
+    {"dimension": "skill_area", "value": "reinforcement-learning", "severity": "medium", "repo_count": 0},
+    {"dimension": "use_case", "value": "fraud-detection", "severity": "low", "repo_count": 0}
+  ]
+}

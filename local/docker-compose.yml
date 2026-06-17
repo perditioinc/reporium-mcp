@@ -1,0 +1,52 @@
+# reporium-mcp $0 local-OSS dev substrate.
+#
+# Stands up the MCP server's data dependency LOCALLY with no cloud:
+#   - stub-api: a tiny OSS FastAPI service (local/stub_api) that serves the
+#     exact endpoints tools/*.py call, backed by a static seed file. Replaces
+#     the live reporium-api on Cloud Run. $0, offline, no credentials.
+#   - mcp: the real MCP server image (built from the repo Dockerfile) pointed
+#     at stub-api via REPORIUM_API_URL. The stdio server has no port, so this
+#     service is used as the build/test surface (see `make smoke`), not a
+#     long-running daemon.
+#
+# Additive and local-only. Production, live cloud, and the running deployment
+# are untouched. Application code is unchanged.
+
+services:
+  stub-api:
+    build:
+      context: ./stub_api
+    image: reporium-mcp-stub-api:local
+    environment:
+      SEED_PATH: /seed/repos.json
+    volumes:
+      - ./seed:/seed:ro
+    # Host port exposed only for the manual workflow (point a real MCP client
+    # at http://localhost:${STUB_API_PORT}). The mcp<->stub-api link uses the
+    # internal docker network and does NOT need this mapping. Override
+    # STUB_API_PORT if 8000 is taken on your host.
+    ports:
+      - "${STUB_API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health').status==200 else sys.exit(1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mcp:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: reporium-mcp:local
+    environment:
+      # Point the unmodified MCP server at the local stub. No code change.
+      REPORIUM_API_URL: http://stub-api:8000
+      # Make `import mcp_server` / `from tools...` resolve from the app root
+      # regardless of which directory the smoke script is launched from.
+      PYTHONPATH: /app
+    depends_on:
+      stub-api:
+        condition: service_healthy
+    # The stdio MCP server is started by an MCP client over stdio, not here.
+    # Keep the container available so `make smoke` can exec the e2e check.
+    command: ["sleep", "infinity"]

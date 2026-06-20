@@ -33,6 +33,8 @@ EXPECTED_TOOLS = {
     "list_categories",
     "get_repos_by_category",
     "get_knowledge_graph",
+    "find_alternatives",
+    "explore_ecosystem",
 }
 
 
@@ -40,9 +42,9 @@ def _list_tools():
     return asyncio.run(mcp_server.list_tools())
 
 
-def test_advertises_exactly_eighteen_tools():
+def test_advertises_exactly_twenty_tools():
     tools = _list_tools()
-    assert len(tools) == 18, f"expected 18 tools, got {len(tools)}"
+    assert len(tools) == 20, f"expected 20 tools, got {len(tools)}"
 
 
 def test_advertised_tool_names_match_expected_set():

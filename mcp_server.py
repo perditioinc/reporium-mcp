@@ -19,7 +19,10 @@ from tools.intelligence import (
     get_cross_dimension_stats,
 )
 from tools.quality import get_quality_signals, list_taxonomy_gaps
-from tools.graph import list_categories, get_repos_by_category, get_knowledge_graph
+from tools.graph import (
+    list_categories, get_repos_by_category, get_knowledge_graph,
+    find_alternatives, explore_ecosystem,
+)
 
 load_dotenv()
 
@@ -338,6 +341,29 @@ async def list_tools() -> list[types.Tool]:
                 "required": [],
             },
         ),
+        types.Tool(
+            name="find_alternatives",
+            description="Find ALTERNATIVE/SIMILAR repos to a given repo by traversing the knowledge graph (typed ALTERNATIVE_TO/SIMILAR_TO edges). Validated to recall correct alternatives far better than keyword search. Ideal for 'alternatives to X' questions; locate the seed repo first (e.g. via search_repos_semantic), then pass its name.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "repo_name": {"type": "string", "description": "The seed repo's name to find alternatives for."},
+                    "limit": {"type": "integer", "description": "Max alternatives (default 8).", "default": 8},
+                },
+                "required": ["repo_name"],
+            },
+        ),
+        types.Tool(
+            name="explore_ecosystem",
+            description="Explore a repo's ecosystem via typed knowledge-graph edges: its alternatives, what it depends on, what extends it, and compatible tools. Lets an agent reason over repo relationships for ecosystem/dependency questions instead of flat keyword search.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "repo_name": {"type": "string", "description": "The repo whose ecosystem to explore."},
+                },
+                "required": ["repo_name"],
+            },
+        ),
     ]
 
 
@@ -403,6 +429,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[types.TextCont
                 edge_type=arguments.get("edge_type"),
                 limit=arguments.get("limit", 50),
             )
+        elif name == "find_alternatives":
+            result = await find_alternatives(client, arguments["repo_name"], arguments.get("limit", 8))
+        elif name == "explore_ecosystem":
+            result = await explore_ecosystem(client, arguments["repo_name"])
         else:
             result = f'{{"error": "Unknown tool: {name}"}}'
 

@@ -9,7 +9,7 @@
 ![python](https://img.shields.io/badge/python-3.11%2B-3776ab)
 ![suite](https://img.shields.io/badge/suite-Reporium-6e40c9)
 ![mcp](https://img.shields.io/badge/MCP-Claude%20Code-6e40c9)
-![tools](https://img.shields.io/badge/tools-18-blue)
+![tools](https://img.shields.io/badge/tools-20-blue)
 <!-- perditio-badges-end -->
 
 `reporium-mcp` is the MCP server for the [Reporium](https://www.reporium.com) AI development tool library. It gives Claude and other MCP-aware AI agents direct access to 1,500+ curated AI repos — search, taxonomy, portfolio intelligence, knowledge graph, and quality signals.

@@ -8,9 +8,9 @@ permissions:
   contents: read
 jobs:
   scan:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: leak/secret/PII scan (blocks on critical/high)
-        shell: powershell
+        shell: pwsh
         run: ./security/scan/scan.ps1 -RepoPath . -PolicyDir security/policy -FailLevel high
